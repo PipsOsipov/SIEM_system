@@ -1,0 +1,5 @@
+---
+settings:
+    address: "localhost"
+    port: "10050"
+...

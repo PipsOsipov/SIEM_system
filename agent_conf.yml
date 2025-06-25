@@ -1,0 +1,17 @@
+---
+settings:
+    server_address: "localhost"
+    server_port: "10050"
+
+logpath:
+    ssh: "/var/log/auth.log"
+    squid: "/var/log/squid/access.log"
+    usb: "/var/log/usb.log"
+    vpn: "/var/log/openvpn.log"
+    
+program:
+    ssh_service: "[ssh]"
+    squid_service: "[squid]"
+    usb_service: "[usb]"
+    vpn_service: "[vpn]"
+...
