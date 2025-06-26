@@ -1,7 +1,7 @@
 import socket
 import yaml
 import threading
-
+import re
 
 with open('server_conf.yml', 'r') as f:
     data = yaml.safe_load(f)
@@ -12,7 +12,9 @@ with open('server_conf.yml', 'r') as f:
         print (ADDRESS, PORT)
     else:
         print("Error: server_conf.yml 'settings' error.")
-        
+     
+SSH_PASSWORD_PATTERN = re.compile(r'\[ssh\] (?P<timestamp>[\d\-T:\.+]+) (?P<host>\S+) \S+\[\d+\]: (?P<status>(?:Accepted|Failed) password) for (?P<user>\S+) from (?P<ip>\d+\.\d+\.\d+\.\d+) port (?P<port>\d+)')
+SSH_SESSION_PATTERN = re.compile(r'\[ssh\] (?P<timestamp>[\d\-T:\.+]+) (?P<host>\S+) \S+\[\d+\]: pam_unix\(sshd:session\): (?P<status>session (?:opened|closed)) for user (?P<user>\w+)')        
 BUFFER_SIZE = 1024
 
 def handle_client(connect, addr):
@@ -20,8 +22,10 @@ def handle_client(connect, addr):
     while True:
         try:
             datablock = connect.recv(BUFFER_SIZE)
-            data = datablock.decode('utf-8')
-            print (data)
+            valid_data = datablock.decode('utf-8')
+            parse_ssh_log(valid_data)
+
+            #print ("Good: " + valid_data)
             if not datablock:
                 print(f"Client {addr} disconnected")
                 break
@@ -33,6 +37,33 @@ def handle_client(connect, addr):
             print(f"Error on a client side {addr}: {e}")
             break
     connect.close()
+        
+def parse_ssh_log(log_line):
+    password_match = SSH_PASSWORD_PATTERN.match(log_line)
+    session_match = SSH_SESSION_PATTERN.match(log_line)
+
+    if password_match:
+        processed_line = password_match.groupdict()
+        print(f"timestamp: {processed_line['timestamp']}| host_name: {processed_line['host']}| Access status: {processed_line['status']}| User: {processed_line['user']}")
+        return
+    elif session_match:
+        processed_line = session_match.groupdict()
+        print(f"timestamp: {processed_line['timestamp']}| host_name: {processed_line['host']}| Session status: {processed_line['status']}| User: {processed_line['user']}")
+        return
+    else:
+        print(f"Unknown str: {log_line}")
+
+# def parse_ssh_sseseion_log(log_line):
+#     print ("Session status: " + log_line)
+#
+# def parse_squid_log(log_line):
+#     print (log_line)
+#
+# def parse_usb_log(log_line):
+#     print (log_line)
+#
+# def pase_vpn_log(log_line):
+#     print (log_line)
         
 
 def start_tcp_server():
