@@ -15,6 +15,7 @@ with open('server_conf.yml', 'r') as f:
      
 SSH_PASSWORD_PATTERN = re.compile(r'\[ssh\] (?P<timestamp>[\d\-T:\.+]+) (?P<host>\S+) \S+\[\d+\]: (?P<status>(?:Accepted|Failed) password) for (?P<user>\S+) from (?P<ip>\d+\.\d+\.\d+\.\d+) port (?P<port>\d+)')
 SSH_SESSION_PATTERN = re.compile(r'\[ssh\] (?P<timestamp>[\d\-T:\.+]+) (?P<host>\S+) \S+\[\d+\]: pam_unix\(sshd:session\): (?P<status>session (?:opened|closed)) for user (?P<user>\w+)')        
+SQUID_PATTERN = re.compile(r'\[squid\]\s+(?P<timestamp>[\d.]+)\s+(?P<processing>\d+)\s+(?P<client_ip>\d{1,3}(?:\.\d{1,3}){3})\s+(?P<status_code>\w+/\d+)\s+(?P<bytes>\d+)\s+(?P<method>\w+)\s+(?P<url_port>(?:[a-zA-Z0-9._-]+|\d{1,3}(?:\.\d{1,3}){3}):\d+)\s+(?P<squid_user>\w+)\s+(?P<type>[A-Z_]+)\/(?P<dst_host>\d{1,3}(?:\.\d{1,3}){3})\s+(?P<ident>\S+)')
 BUFFER_SIZE = 1024
 
 def handle_client(connect, addr):
@@ -23,9 +24,11 @@ def handle_client(connect, addr):
         try:
             datablock = connect.recv(BUFFER_SIZE)
             valid_data = datablock.decode('utf-8')
-            parse_ssh_log(valid_data)
-
+            #parse_ssh_log(valid_data)
+            parse_squid_log(valid_data)
+            
             #print ("Good: " + valid_data)
+            
             if not datablock:
                 print(f"Client {addr} disconnected")
                 break
@@ -53,12 +56,15 @@ def parse_ssh_log(log_line):
     else:
         print(f"Unknown str: {log_line}")
 
-# def parse_ssh_sseseion_log(log_line):
-#     print ("Session status: " + log_line)
-#
-# def parse_squid_log(log_line):
-#     print (log_line)
-#
+def parse_squid_log(log_line):
+    squid_match = SQUID_PATTERN.match(log_line)
+
+    if squid_match:
+        processed_line = squid_match.groupdict()
+        print(f"Timestamp: {processed_line['timestamp']}| Client ip: {processed_line['client_ip']}| Status_code: {processed_line['status_code']} | Method: {processed_line['method']}|| Url_port: {processed_line['url_port']} Squid_user: {processed_line['squid_user']}| Type: {processed_line['type']}| Dst_host: {processed_line['dst_host']}")
+    else:
+        print(f"Unknown str: {log_line}")
+
 # def parse_usb_log(log_line):
 #     print (log_line)
 #
