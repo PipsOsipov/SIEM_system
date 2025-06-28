@@ -13,21 +13,17 @@ with open('server_conf.yml', 'r') as f:
     else:
         print("Error: server_conf.yml 'settings' error.")
      
-SSH_PASSWORD_PATTERN = re.compile(r'\[ssh\] (?P<timestamp>[\d\-T:\.+]+) (?P<host>\S+) \S+\[\d+\]: (?P<status>(?:Accepted|Failed) password) for (?P<user>\S+) from (?P<ip>\d+\.\d+\.\d+\.\d+) port (?P<port>\d+)')
-SSH_SESSION_PATTERN = re.compile(r'\[ssh\] (?P<timestamp>[\d\-T:\.+]+) (?P<host>\S+) \S+\[\d+\]: pam_unix\(sshd:session\): (?P<status>session (?:opened|closed)) for user (?P<user>\w+)')        
-SQUID_PATTERN = re.compile(r'\[squid\]\s+(?P<timestamp>[\d.]+)\s+(?P<processing>\d+)\s+(?P<client_ip>\d{1,3}(?:\.\d{1,3}){3})\s+(?P<status_code>\w+/\d+)\s+(?P<bytes>\d+)\s+(?P<method>\w+)\s+(?P<url_port>(?:[a-zA-Z0-9._-]+|\d{1,3}(?:\.\d{1,3}){3}):\d+)\s+(?P<squid_user>\w+)\s+(?P<type>[A-Z_]+)\/(?P<dst_host>\d{1,3}(?:\.\d{1,3}){3})\s+(?P<ident>\S+)')
-BUFFER_SIZE = 1024
-
+     
 def handle_client(connect, addr):
     print(f"Client connected: {addr}")
     while True:
         try:
             datablock = connect.recv(BUFFER_SIZE)
             valid_data = datablock.decode('utf-8')
-            #parse_ssh_log(valid_data)
-            parse_squid_log(valid_data)
-            
-            #print ("Good: " + valid_data)
+            # #parse_ssh_log(valid_data)
+            # parse_squid_log(valid_data)
+            # #print ("Good: " + valid_data)
+            parse_log(valid_data)
             
             if not datablock:
                 print(f"Client {addr} disconnected")
@@ -40,7 +36,16 @@ def handle_client(connect, addr):
             print(f"Error on a client side {addr}: {e}")
             break
     connect.close()
-        
+     
+     
+def parse_log(log_line):
+    for tag, parser in PARSERS.items():
+        if log_line.startswith(tag):
+            parser(log_line)
+            return
+    else:
+        print("Unlnown log")
+   
 def parse_ssh_log(log_line):
     password_match = SSH_PASSWORD_PATTERN.match(log_line)
     session_match = SSH_SESSION_PATTERN.match(log_line)
@@ -70,7 +75,17 @@ def parse_squid_log(log_line):
 #
 # def pase_vpn_log(log_line):
 #     print (log_line)
-        
+
+PARSERS = {
+    "[ssh]": parse_ssh_log,
+    "[squid]": parse_squid_log,
+    }
+
+SSH_PASSWORD_PATTERN = re.compile(r'\[ssh\] (?P<timestamp>[\d\-T:\.+]+) (?P<host>\S+) \S+\[\d+\]: (?P<status>(?:Accepted|Failed) password) for (?P<user>\S+) from (?P<ip>\d+\.\d+\.\d+\.\d+) port (?P<port>\d+)')
+SSH_SESSION_PATTERN = re.compile(r'\[ssh\] (?P<timestamp>[\d\-T:\.+]+) (?P<host>\S+) \S+\[\d+\]: pam_unix\(sshd:session\): (?P<status>session (?:opened|closed)) for user (?P<user>\w+)')
+SQUID_PATTERN = re.compile(r'\[squid\]\s+(?P<timestamp>[\d.]+)\s+(?P<processing>\d+)\s+(?P<client_ip>\d{1,3}(?:\.\d{1,3}){3})\s+(?P<status_code>\w+/\d+)\s+(?P<bytes>\d+)\s+(?P<method>\w+)\s+(?P<url_port>(?:[a-zA-Z0-9._-]+|\d{1,3}(?:\.\d{1,3}){3}):\d+)\s+(?P<squid_user>\w+)\s+(?P<type>[A-Z_]+)\/(?P<dst_host>\d{1,3}(?:\.\d{1,3}){3})\s+(?P<ident>\S+)')
+
+BUFFER_SIZE = 1024
 
 def start_tcp_server():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
