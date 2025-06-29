@@ -70,17 +70,32 @@ def parse_squid_log(log_line):
     else:
         print(f"Unknown str: {log_line}")
 
-# def parse_usb_log(log_line):
-#     print (log_line)
-#
-# def pase_vpn_log(log_line):
-#     print (log_line)
+def parse_usb_log(log_line):
+    usb_match = USB_PATTERN.match(log_line)
+    if usb_match:
+        processed_line = usb_match.groupdict()
+        print(f"timestamp: {processed_line['timestamp']}| host_name: {processed_line['host']}| usb_port: {processed_line['usb_port']}| message: {processed_line['message']}")
+    else:
+        print(f"Unknown str: {log_line}")
+
+def parse_vpn_log(log_line):
+    vpn_match = VPN_PATTERN.match(log_line)
+
+    if vpn_match:
+        processed_line = vpn_match.groupdict()
+        print(f"timestamp: {processed_line['timestamp']}| host_name: {processed_line['host']}| service: {processed_line['service']}|  message: {processed_line['message']}")
+    else:
+        print(f"Unknown str: {log_line}")
 
 PARSERS = {
     "[ssh]": parse_ssh_log,
     "[squid]": parse_squid_log,
+    "[vpn]": parse_vpn_log,
+    "[usb]":parse_usb_log,
     }
 
+USB_PATTERN = re.compile("^\[usb\]\s+(?P<timestamp>\d{4}-\d{2}-\d{2}T[\d:.+-]+)\s+(?P<host>\S+)\s+kernel:\s+\[\s*\d+\.\d+\]\s+usb\s+(?P<usb_port>\S+):\s+(?P<message>.+)$")
+VPN_PATTERN = re.compile(r'^\[vpn\]\s+(?P<timestamp>\d{4}-\d{2}-\d{2}T[\d:.+-]+)\s+(?P<host>\S+)\s+(?P<service>\S+)\[\d+\]:\s+(?P<message>.+)$')
 SSH_PASSWORD_PATTERN = re.compile(r'\[ssh\] (?P<timestamp>[\d\-T:\.+]+) (?P<host>\S+) \S+\[\d+\]: (?P<status>(?:Accepted|Failed) password) for (?P<user>\S+) from (?P<ip>\d+\.\d+\.\d+\.\d+) port (?P<port>\d+)')
 SSH_SESSION_PATTERN = re.compile(r'\[ssh\] (?P<timestamp>[\d\-T:\.+]+) (?P<host>\S+) \S+\[\d+\]: pam_unix\(sshd:session\): (?P<status>session (?:opened|closed)) for user (?P<user>\w+)')
 SQUID_PATTERN = re.compile(r'\[squid\]\s+(?P<timestamp>[\d.]+)\s+(?P<processing>\d+)\s+(?P<client_ip>\d{1,3}(?:\.\d{1,3}){3})\s+(?P<status_code>\w+/\d+)\s+(?P<bytes>\d+)\s+(?P<method>\w+)\s+(?P<url_port>(?:[a-zA-Z0-9._-]+|\d{1,3}(?:\.\d{1,3}){3}):\d+)\s+(?P<squid_user>\w+)\s+(?P<type>[A-Z_]+)\/(?P<dst_host>\d{1,3}(?:\.\d{1,3}){3})\s+(?P<ident>\S+)')
