@@ -175,7 +175,7 @@ def send_log_data(log_generator, log_type_name):
         try:
             with socket_lock:
                 if client_socket:
-                    client_socket.sendall(entry.encode('utf-8'))
+                    client_socket.sendall((entry + "\n").encode('utf-8'))
                 else:
                     print(f"[{log_type_name}] Err. exit...")
                     break
