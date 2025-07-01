@@ -104,6 +104,18 @@ def parse_squid_log(log_line):
 
     if squid_match:
         processed_line = squid_match.groupdict()
+        processed_line['timestamp'] = datetime.fromtimestamp(float(processed_line['timestamp']))
+        db_cursor.execute(
+            """ INSERT INTO squid_log (timestamp, client_ip, status_code, method, url_port, squid_user, type, dst_host) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+            (processed_line['timestamp'],
+             processed_line['client_ip'],
+             processed_line['status_code'],
+             processed_line['method'],
+             processed_line['url_port'],
+             processed_line['squid_user'],
+             processed_line['type'],
+             processed_line['dst_host']))
+        db_connect.commit()
         print(f"Timestamp: {processed_line['timestamp']}| Client ip: {processed_line['client_ip']}| Status_code: {processed_line['status_code']} | Method: {processed_line['method']}|| Url_port: {processed_line['url_port']} Squid_user: {processed_line['squid_user']}| Type: {processed_line['type']}| Dst_host: {processed_line['dst_host']}")
     else:
         print(f"Unknown str: {log_line}")
@@ -112,6 +124,14 @@ def parse_usb_log(log_line):
     usb_match = USB_PATTERN.match(log_line)
     if usb_match:
         processed_line = usb_match.groupdict()
+        processed_line['timestamp'] = datetime.fromisoformat(processed_line['timestamp'])
+        db_cursor.execute(
+            """ INSERT INTO usb_log (timestamp, host_name, usb_port, message) VALUES (%s, %s, %s, %s)""",
+            (processed_line['timestamp'],
+             processed_line['host'],
+             processed_line['usb_port'],
+             processed_line['message']))
+        db_connect.commit()
         print(f"timestamp: {processed_line['timestamp']}| host_name: {processed_line['host']}| usb_port: {processed_line['usb_port']}| message: {processed_line['message']}")
     else:
         print(f"Unknown str: {log_line}")
@@ -121,6 +141,14 @@ def parse_vpn_log(log_line):
 
     if vpn_match:
         processed_line = vpn_match.groupdict()
+        processed_line['timestamp'] = datetime.fromisoformat(processed_line['timestamp'])
+        db_cursor.execute(
+            """ INSERT INTO vpn_log (timestamp, host_name, service, message) VALUES (%s, %s, %s, %s)""",
+            (processed_line['timestamp'],
+             processed_line['host'],
+             processed_line['service'],
+             processed_line['message']))
+        db_connect.commit()
         print(f"timestamp: {processed_line['timestamp']}| host_name: {processed_line['host']}| service: {processed_line['service']}|  message: {processed_line['message']}")
     else:
         print(f"Unknown str: {log_line}")
