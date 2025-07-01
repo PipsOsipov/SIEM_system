@@ -33,15 +33,24 @@ def handle_client(connect, addr):
     while True:
         try:
             datablock = connect.recv(BUFFER_SIZE)
-            valid_data = datablock.decode('utf-8')
-            # #parse_ssh_log(valid_data)
-            # parse_squid_log(valid_data)
-            # #print ("Good: " + valid_data)
-            parse_log(valid_data)
-            
             if not datablock:
                 print(f"Client {addr} disconnected")
                 break
+
+            buffer += datablock.decode('utf-8')
+            # print("BUFFER_TYPE:", type(buffer))
+            # print("BUFFER_CONTENT", repr(buffer))
+
+            while "\n" in buffer:
+                line, buffer = buffer.split("\n", 1)
+                # print("BUFFER_TYPE:", type(buffer))
+                # print("LINE_TYPE:", type(line))
+                # print("BUFFER_CONTENT", repr(buffer))
+                line = line.strip()
+                if line:
+                    # print(line)
+                    # print("Line type:", type(line))
+                    parse_log(line)
             connect.sendall(datablock)
         except ConnectionResetError:
             print(f"Client {addr} disconnected")
