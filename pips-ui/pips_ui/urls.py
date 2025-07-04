@@ -17,5 +17,5 @@ Including another URLconf
 from django.urls import path, include
 
 urlpatterns = [
-    path('logs_monitoring/', include('logs.urls')),
+    path('logs_monitoring/', include('logs_monitoring.urls')),
 ]
