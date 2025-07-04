@@ -15,4 +15,4 @@ def all_logs(request):
         'usb_logs': usb_logs,
         'vpn_logs': vpn_logs,
     }
-    return render(request, 'logs/all_logs.html', context)
+    return render(request, 'logs_monitoring/all_logs.html', context)
