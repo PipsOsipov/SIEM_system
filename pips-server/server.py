@@ -30,6 +30,7 @@ db_cursor = db_connect.cursor()
      
 def handle_client(connect, addr):
     print(f"Client connected: {addr}")
+    buffer = ""
     while True:
         try:
             datablock = connect.recv(BUFFER_SIZE)
