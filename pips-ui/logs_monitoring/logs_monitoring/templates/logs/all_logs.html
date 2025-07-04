@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SIEM_LOGS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 40px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
+        th, td { border: 1px solid #ccc; padding: 4px; font-size: 12px; }
+        th { background: #eee; }
+    </style>
+</head>
+<body>
+    <h1>All Logs</h1>
+
+    <h2>VPN Logs</h2>
+    <table>
+        <tr><th>time</th><th>host_name</th><th>service</th><th>message</th></tr>
+        {% for log in vpn_logs %}
+        <tr>
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.host_name }}</td>
+            <td>{{ log.service }}</td>
+            <td>{{ log.message }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>SSH Access Log</h2>
+    <table>
+        <tr><th>time</th><th>client_ip</th><th>user</th><th>access_status</th></tr>
+        {% for log in ssh_access_logs %}
+        <tr>
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.client_ip }}</td>
+            <td>{{ log.user_name }}</td>
+            <td>{{ log.status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>SSH Session Log</h2>
+    <table>
+        <tr><th>time</th><th>host_name</th><th>user</th><th>session_status</th></tr>
+        {% for log in ssh_session_logs %}
+        <tr>
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.host_name }}</td>
+            <td>{{ log.user_name }}</td>
+            <td>{{ log.session_status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>USB Logs</h2>
+    <table>
+        <tr><th>time</th><th>host_name</th><th>usb_port</th><th>message</th></tr>
+        {% for log in usb_logs %}
+        <tr>
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.host_name }}</td>
+            <td>{{ log.usb_port }}</td>
+            <td>{{ log.message }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Squid Logs</h2>
+    <table>
+        <tr>
+            <th>time</th><th>client_ip</th><th>Код</th><th>method</th>
+            <th>url:port</th><th>squid_user</th><th>Тип</th><th>dst_host</th>
+        </tr>
+        {% for log in squid_logs %}
+        <tr>
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.client_ip }}</td>
+            <td>{{ log.status_code }}</td>
+            <td>{{ log.method }}</td>
+            <td>{{ log.url_port }}</td>
+            <td>{{ log.squid_user }}</td>
+            <td>{{ log.type }}</td>
+            <td>{{ log.dst_host }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
