@@ -10,14 +10,41 @@
             --text-color: #f0f0f0;
             --accent-color: #00d9ff;
             --border-color: #3c3c4f;
+            --hover-color: #3a3a55;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: 'Segoe UI', Tahoma, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 60px 20px 20px;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #151525;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 10px;
+            z-index: 999;
+        }
+
+        nav a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
         }
 
         h1 {
@@ -27,16 +54,19 @@
         }
 
         h2 {
-            margin-top: 40px;
+            margin-top: 60px;
             color: var(--accent-color);
             border-left: 4px solid var(--accent-color);
             padding-left: 10px;
         }
 
+        .table-wrapper {
+            margin: 20px 0;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
             background-color: var(--card-color);
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -46,7 +76,8 @@
         thead {
             background-color: #33334d;
             position: sticky;
-            top: 0;
+            top: 50px;
+            z-index: 2;
         }
 
         th, td {
@@ -58,114 +89,155 @@
 
         th {
             color: var(--accent-color);
-            font-weight: 600;
         }
 
         tr:hover {
-            background-color: #3a3a55;
+            background-color: var(--hover-color);
+        }
+
+        input[type="text"] {
+            margin: 10px 0 20px;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            width: 100%;
+            background-color: #1e1e2f;
+            color: white;
+        }
+
+        .highlight-error {
+            color: #ff6e6e;
+            font-weight: bold;
         }
 
         @media (max-width: 768px) {
-            th, td {
-                font-size: 12px;
-                padding: 6px;
-            }
+            th, td { font-size: 12px; padding: 6px; }
+            nav a { font-size: 12px; }
         }
     </style>
 </head>
 <body>
+    <nav>
+        <a href="#vpn">VPN</a>
+        <a href="#ssh_access">SSH Access</a>
+        <a href="#ssh_session">SSH Session</a>
+        <a href="#usb">USB</a>
+        <a href="#squid">Squid</a>
+    </nav>
+
     <h1>SIEM Logs Dashboard</h1>
 
-    <h2>VPN Logs</h2>
-    <table>
-        <thead>
-            <tr><th>Time</th><th>Host</th><th>Service</th><th>Message</th></tr>
-        </thead>
-        <tbody>
-        {% for log in vpn_logs %}
-        <tr>
-            <td>{{ log.timestamp }}</td>
-            <td>{{ log.host_name }}</td>
-            <td>{{ log.service }}</td>
-            <td>{{ log.message }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <h2>SSH Access Logs</h2>
-    <table>
-        <thead>
-            <tr><th>Time</th><th>Client IP</th><th>User</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-        {% for log in ssh_access_logs %}
-        <tr>
-            <td>{{ log.timestamp }}</td>
-            <td>{{ log.client_ip }}</td>
-            <td>{{ log.user_name }}</td>
-            <td>{{ log.status }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <h2>SSH Session Logs</h2>
-    <table>
-        <thead>
-            <tr><th>Time</th><th>Host</th><th>User</th><th>Session Status</th></tr>
-        </thead>
-        <tbody>
-        {% for log in ssh_session_logs %}
-        <tr>
-            <td>{{ log.timestamp }}</td>
-            <td>{{ log.host_name }}</td>
-            <td>{{ log.user_name }}</td>
-            <td>{{ log.session_status }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <h2>USB Logs</h2>
-    <table>
-        <thead>
-            <tr><th>Time</th><th>Host</th><th>Port</th><th>Message</th></tr>
-        </thead>
-        <tbody>
-        {% for log in usb_logs %}
-        <tr>
-            <td>{{ log.timestamp }}</td>
-            <td>{{ log.host_name }}</td>
-            <td>{{ log.usb_port }}</td>
-            <td>{{ log.message }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <h2>Squid Logs</h2>
-    <table>
-        <thead>
+    <div class="table-wrapper" id="vpn">
+        <h2>VPN Logs</h2>
+        <input type="text" placeholder="Search..." onkeyup="filterTable(this, 'vpn_table')">
+        <table id="vpn_table">
+            <thead><tr><th>Time</th><th>Host</th><th>Service</th><th>Message</th></tr></thead>
+            <tbody>
+            {% for log in vpn_logs %}
             <tr>
-                <th>Time</th><th>Client IP</th><th>Code</th><th>Method</th>
-                <th>URL:Port</th><th>User</th><th>Type</th><th>Dst Host</th>
+                <td>{{ log.timestamp }}</td>
+                <td>{{ log.host_name }}</td>
+                <td>{{ log.service }}</td>
+                <td class="{% if 'error' in log.message|lower %}highlight-error{% endif %}">{{ log.message }}</td>
             </tr>
-        </thead>
-        <tbody>
-        {% for log in squid_logs %}
-        <tr>
-            <td>{{ log.timestamp }}</td>
-            <td>{{ log.client_ip }}</td>
-            <td>{{ log.status_code }}</td>
-            <td>{{ log.method }}</td>
-            <td>{{ log.url_port }}</td>
-            <td>{{ log.squid_user }}</td>
-            <td>{{ log.type }}</td>
-            <td>{{ log.dst_host }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-wrapper" id="ssh_access">
+        <h2>SSH Access Logs</h2>
+        <input type="text" placeholder="Search..." onkeyup="filterTable(this, 'ssh_access_table')">
+        <table id="ssh_access_table">
+            <thead><tr><th>Time</th><th>Client IP</th><th>User</th><th>Status</th></tr></thead>
+            <tbody>
+            {% for log in ssh_access_logs %}
+            <tr>
+                <td>{{ log.timestamp }}</td>
+                <td>{{ log.client_ip }}</td>
+                <td>{{ log.user_name }}</td>
+                <td>{{ log.status }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-wrapper" id="ssh_session">
+        <h2>SSH Session Logs</h2>
+        <input type="text" placeholder="Search..." onkeyup="filterTable(this, 'ssh_session_table')">
+        <table id="ssh_session_table">
+            <thead><tr><th>Time</th><th>Host</th><th>User</th><th>Status</th></tr></thead>
+            <tbody>
+            {% for log in ssh_session_logs %}
+            <tr>
+                <td>{{ log.timestamp }}</td>
+                <td>{{ log.host_name }}</td>
+                <td>{{ log.user_name }}</td>
+                <td>{{ log.session_status }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-wrapper" id="usb">
+        <h2>USB Logs</h2>
+        <input type="text" placeholder="Search..." onkeyup="filterTable(this, 'usb_table')">
+        <table id="usb_table">
+            <thead><tr><th>Time</th><th>Host</th><th>Port</th><th>Message</th></tr></thead>
+            <tbody>
+            {% for log in usb_logs %}
+            <tr>
+                <td>{{ log.timestamp }}</td>
+                <td>{{ log.host_name }}</td>
+                <td>{{ log.usb_port }}</td>
+                <td>{{ log.message }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-wrapper" id="squid">
+        <h2>Squid Logs</h2>
+        <input type="text" placeholder="Search..." onkeyup="filterTable(this, 'squid_table')">
+        <table id="squid_table">
+            <thead>
+                <tr><th>Time</th><th>Client IP</th><th>Code</th><th>Method</th><th>URL:Port</th><th>User</th><th>Type</th><th>Dst Host</th></tr>
+            </thead>
+            <tbody>
+            {% for log in squid_logs %}
+            <tr>
+                <td>{{ log.timestamp }}</td>
+                <td>{{ log.client_ip }}</td>
+                <td>{{ log.status_code }}</td>
+                <td>{{ log.method }}</td>
+                <td>{{ log.url_port }}</td>
+                <td>{{ log.squid_user }}</td>
+                <td>{{ log.type }}</td>
+                <td>{{ log.dst_host }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+     <script>
+    function filterTable(input, tableId) {
+        const filter = input.value.toLowerCase();
+        const rows = document.getElementById(tableId).getElementsByTagName("tr");
+        for (let i = 1; i < rows.length; i++) {
+            const rowText = rows[i].innerText.toLowerCase();
+            rows[i].style.display = rowText.includes(filter) ? "" : "none";
+        }
+    }
+
+    setInterval(() => {
+        if (!document.querySelector('input:focus')) {
+            location.reload();
+        }
+    }, 10000);
+    </script>
 </body>
 </html>
